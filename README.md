@@ -4,3 +4,7 @@ Open edit.py.
 Use.
 
 After opening, it will scan your clipboard until it finds a roblox catalog link, then it open the sniper with that link.
+
+Just recopy the link to open it again.
+
+
