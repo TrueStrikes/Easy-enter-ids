@@ -46,6 +46,12 @@ print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog lin
 # Initial clipboard text
 clipboard_text = ""
 
+# Define the timer duration in seconds (10 minutes = 600 seconds)
+timer_duration = 600
+
+# Start the timer
+start_time = time.time()
+
 # Infinite loop
 while True:
     # Check the clipboard contents
@@ -61,8 +67,16 @@ while True:
                     subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
                     print_message('main.py opened successfully!', Fore.YELLOW)
                     print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CYAN)
+                    pyperclip.copy("redacted")  # Set clipboard contents to "redacted"
                 except Exception as e:
                     print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
+
+    # Check if the timer has ended
+    elapsed_time = time.time() - start_time
+    if elapsed_time >= timer_duration:
+        # Restart the program
+        subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'edit.py')], shell=True)
+        break
 
     # Wait for a short duration before checking clipboard again
     time.sleep(0.1)
