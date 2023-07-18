@@ -10,3 +10,11 @@ Just recopy the link to open it again.
 Every line is explained, so you cant say it's a cookie logger
 
 I would appreciate a star so people dont say it's a cookie logger
+
+
+Common errors: 
+
+Closes and opens instantly. Fix: Open the folder in cmd, then do "python edit"
+
+If you get a no module error, do "pip install (insert-module)
+
