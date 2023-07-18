@@ -9,3 +9,4 @@ Just recopy the link to open it again.
 
 Every line is explained, so you cant say it's a cookie logger
 
+I would appreciate a star so people dont say it's a cookie logger
