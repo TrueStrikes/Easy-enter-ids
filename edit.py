@@ -23,7 +23,7 @@ while True:
         # Search for the "items" section
         if "items" in data:
             # Prompt for item input
-            url = input("Enter the URL (or 'exit' to quit): ")
+            url = input("Enter the URL/itemID (or 'exit' to quit): ")
 
             if url.lower() == "exit":
                 break  # Exit the loop
