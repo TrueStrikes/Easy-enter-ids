@@ -1,7 +1,9 @@
 import os
 import json
 import subprocess
+import pyperclip
 from colorama import init, Fore, Style
+import time
 
 # Initialize colorama
 init()
@@ -16,7 +18,7 @@ input_prompt_color = Fore.LIGHTBLUE_EX
 def print_message(message, color):
     print(f"{color}{message}{Style.RESET_ALL}")
 
-def modify_config():
+def modify_config(url):
     if not os.path.isfile(file_path):
         print_message('config.json file not found in the script directory.', Fore.RED)
         return False
@@ -28,12 +30,6 @@ def modify_config():
         print_message('"items" section not found in the JSON file.', Fore.RED)
         return False
 
-    print_message("Enter the URL/itemID (or 'exit' to quit):", input_prompt_color)
-    url = input()
-
-    if url.lower() == "exit":
-        return False
-
     url = url.replace("https://www.roblox.com/catalog/", "").split("/")[0]
     data["items"] = [url]
 
@@ -42,14 +38,31 @@ def modify_config():
 
     print_message('Items modified successfully!', Fore.GREEN)
 
-    try:
-        subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
-        print_message('main.py opened successfully!', Fore.YELLOW)
-    except Exception as e:
-        print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
-
     return True
 
+# Starting message
+print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CYAN)
+
+# Initial clipboard text
+clipboard_text = ""
+
 # Infinite loop
-while modify_config():
-    pass
+while True:
+    # Check the clipboard contents
+    new_clipboard_text = pyperclip.paste()
+
+    if new_clipboard_text != clipboard_text:
+        clipboard_text = new_clipboard_text
+
+        if clipboard_text.startswith("https://www.roblox.com/catalog/"):
+            # Modify the config with the clipboard URL
+            if modify_config(clipboard_text):
+                try:
+                    subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
+                    print_message('main.py opened successfully!', Fore.YELLOW)
+                    print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CYAN)
+                except Exception as e:
+                    print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
+
+    # Wait for a short duration before checking clipboard again
+    time.sleep(0.1)
