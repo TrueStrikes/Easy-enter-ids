@@ -38,7 +38,6 @@ if os.path.isfile(file_path):
 
         # Glow effect
         print(f"{Fore.GREEN}{Style.BRIGHT}Items modified successfully!{Style.RESET_ALL}")
-        time.sleep(1)  # Pause for 2 seconds
 
         try:
             # Execute main.py in a separate command prompt window
