@@ -2,6 +2,11 @@ import os
 import json
 import subprocess
 import sys
+import time
+from colorama import init, Fore, Style
+
+# Initialize colorama
+init()
 
 # Get the script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -30,13 +35,16 @@ if os.path.isfile(file_path):
         # Save the modified JSON data back to the file
         with open(file_path, 'w') as file:
             json.dump(data, file, indent=4)
-        print('Items modified successfully!')
+
+        # Glow effect
+        print(f"{Fore.GREEN}{Style.BRIGHT}Items modified successfully!{Style.RESET_ALL}")
+        time.sleep(1)  # Pause for 2 seconds
 
         try:
             # Execute main.py in a separate command prompt window
             main_file_path = os.path.join(script_dir, 'main.py')
             subprocess.Popen(['cmd', '/c', 'start', 'python', main_file_path], shell=True)
-            print('main.py opened in a separate command prompt.')
+            print(f"{Fore.YELLOW}main.py opened successfully!{Style.RESET_ALL}")
         except Exception as e:
             print('An error occurred while opening main.py:', str(e))
     else:
