@@ -8,51 +8,48 @@ init()
 
 # Get the script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Construct the file path to config.json
 file_path = os.path.join(script_dir, 'config.json')
 
 # Define the input prompt color
 input_prompt_color = Fore.LIGHTBLUE_EX
 
-# Prompt message for item input
-prompt_message = f"{input_prompt_color}Enter the URL/itemID (or 'exit' to quit): {Style.RESET_ALL}"
+def print_message(message, color):
+    print(f"{color}{message}{Style.RESET_ALL}")
 
-# Check if config.json exists
-if not os.path.isfile(file_path):
-    print('config.json file not found in the script directory.')
-    exit()
+def modify_config():
+    if not os.path.isfile(file_path):
+        print_message('config.json file not found in the script directory.', Fore.RED)
+        return False
 
-# Read the JSON file
-with open(file_path, 'r') as file:
-    data = json.load(file)
+    with open(file_path, 'r') as file:
+        data = json.load(file)
 
-# Check if "items" section exists
-if "items" not in data:
-    print('"items" section not found in the JSON file.')
-    exit()
+    if "items" not in data:
+        print_message('"items" section not found in the JSON file.', Fore.RED)
+        return False
 
-# Infinite loop
-while True:
-    print(prompt_message, end="")
+    print_message("Enter the URL/itemID (or 'exit' to quit):", input_prompt_color)
     url = input()
 
     if url.lower() == "exit":
-        break
+        return False
 
     url = url.replace("https://www.roblox.com/catalog/", "").split("/")[0]
     data["items"] = [url]
 
-    # Save the modified JSON data back to the file
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
 
-    # Glow effect
-    print(f"{Fore.GREEN}{Style.BRIGHT}Items modified successfully!{Style.RESET_ALL}")
+    print_message('Items modified successfully!', Fore.GREEN)
 
     try:
-        main_file_path = os.path.join(script_dir, 'main.py')
-        subprocess.Popen(['cmd', '/c', 'start', 'python', main_file_path], shell=True)
-        print(f"{Fore.YELLOW}main.py opened successfully!{Style.RESET_ALL}")
+        subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
+        print_message('main.py opened successfully!', Fore.YELLOW)
     except Exception as e:
-        print('An error occurred while opening main.py:', str(e))
+        print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
+
+    return True
+
+# Infinite loop
+while modify_config():
+    pass
