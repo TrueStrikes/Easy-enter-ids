@@ -49,38 +49,26 @@ def modify_config():
 def detect_clipboard_changes():
     print_message("Searching started!", Fore.YELLOW)
 
-    processed_items = []  # List to store processed item IDs
-    cooldown_duration = 5  # Cooldown period in seconds
-    last_detection_time = 0  # Time of the last detection
-    previous_clipboard = ""  # Previous clipboard content
+    last_detected_item = None
 
     while True:
         current_clipboard = clipboard.paste()
 
         # Check if clipboard content has changed
-        if current_clipboard != previous_clipboard:
-            # Automatically enter detected item ID
+        if current_clipboard:
             url = current_clipboard.strip()
             if url.startswith("https://www.roblox.com/catalog/"):
                 item_id = url.replace("https://www.roblox.com/catalog/", "").split("/")[0]
 
-                # Check if cooldown period has passed since the last detection
-                current_time = time.time()
-                if current_time - last_detection_time >= cooldown_duration:
-                    if item_id not in processed_items:  # Check if item ID is new
-                        print("Detected Item ID:", item_id)
-                        processed_items.append(item_id)  # Add item ID to the processed list
-                        # Automatically enter the item ID into the config file or perform desired actions
+                if item_id != last_detected_item:  # Check if it's a new item
+                    print("Detected Item ID:", item_id)
+                    last_detected_item = item_id
 
-                        try:
-                            subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
-                            print_message('main.py opened successfully!', Fore.YELLOW)
-                        except Exception as e:
-                            print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
-
-                    # Update the last detection time and previous clipboard
-                    last_detection_time = current_time
-                    previous_clipboard = current_clipboard
+                    try:
+                        subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
+                        print_message('main.py opened successfully!', Fore.YELLOW)
+                    except Exception as e:
+                        print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
 
         # Add a delay to avoid constant polling
         time.sleep(1)
