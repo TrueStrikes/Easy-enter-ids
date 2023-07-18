@@ -7,4 +7,5 @@ After opening, it will scan your clipboard until it finds a roblox catalog link,
 
 Just recopy the link to open it again.
 
+Every line is explained, so you cant say it's a cookie logger
 
