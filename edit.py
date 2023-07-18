@@ -12,6 +12,9 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 # Construct the file path to config.json
 file_path = os.path.join(script_dir, 'config.json')
 
+# Define the input prompt color
+input_prompt_color = Fore.LIGHTBLUE_EX
+
 # Infinite loop
 while True:
     # Check if config.json exists
@@ -23,7 +26,8 @@ while True:
         # Search for the "items" section
         if "items" in data:
             # Prompt for item input
-            url = input("Enter the URL/itemID (or 'exit' to quit): ")
+            print(f"{input_prompt_color}Enter the URL/itemID (or 'exit' to quit): {Style.RESET_ALL}", end="")
+            url = input()
 
             if url.lower() == "exit":
                 break  # Exit the loop
