@@ -18,7 +18,6 @@ Closes and opens instantly. Fix: Open the folder in cmd, then do "python edit.py
 
 If you get a no module error, do "pip install (insert-module)
 
-It just doesnt work. Fix: Get off of web.roblox.com. It doesnt work with it.
 
 
 Tutorial: https://www.youtube.com/watch?v=br40kUatUMI
