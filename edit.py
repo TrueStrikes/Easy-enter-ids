@@ -30,7 +30,7 @@ def modify_config(url):
         print_message('"items" section not found in the JSON file.', Fore.RED)
         return False
 
-    url = url.replace("https://www.roblox.com/catalog/", "").split("/")[0]
+    url = url.replace("https://www.roblox.com/catalog/", "").replace("https://web.roblox.com/catalog/", "").split("/")[0]
     data["items"] = [url]
 
     with open(file_path, 'w') as file:
@@ -60,7 +60,7 @@ while True:
     if new_clipboard_text != clipboard_text:
         clipboard_text = new_clipboard_text
 
-        if clipboard_text.startswith("https://www.roblox.com/catalog/"):
+        if clipboard_text.startswith("https://www.roblox.com/catalog/") or clipboard_text.startswith("https://web.roblox.com/catalog/"):
             # Modify the config with the clipboard URL
             if modify_config(clipboard_text):
                 try:
