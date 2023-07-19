@@ -1,79 +1,89 @@
 import os
-from tkinter import Tk, Listbox, Button, END, ttk
-from colorama import Fore, Style
-import subprocess
 import json
+import subprocess
+from tkinter import *
+from tkinter import messagebox
 
-def open_main(item):
-    print(f"{Fore.GREEN}Opening main.py with item: {item}{Style.RESET_ALL}")
-    try:
-        subprocess.Popen(['cmd', '/c', 'start', 'python', 'main.py'])
-    except Exception as e:
-        print(f'An error occurred while opening main.py: {str(e)}')
+# Get the script's directory
+script_dir = os.path.dirname(os.path.abspath(__file__))
+log_file_path = os.path.join(script_dir, 'log.json')
 
-def delete_item(selected_item):
-    with open('log.txt', 'r') as file:
-        lines = file.readlines()
+def load_logs():
+    if os.path.isfile(log_file_path):
+        with open(log_file_path, 'r') as log_file:
+            try:
+                log_data = json.load(log_file)
+            except json.JSONDecodeError:
+                log_data = []
+    else:
+        log_data = []
 
-    with open('log.txt', 'w') as file:
-        for line in lines:
-            if line.strip() != selected_item:
-                file.write(line)
+    return log_data
 
-def main():
-    # Read the log file
-    with open('log.txt', 'r') as file:
-        log_data = file.readlines()
+def create_gui():
+    def open_item():
+        selected_item = listbox.get(ANCHOR)
+        item = json.loads(selected_item)
+        item_id = item["id"]
+        subprocess.Popen(['cmd', '/c', 'start', 'python', 'main.py', item_id], shell=True)
 
-    # Create the GUI window
+    def delete_item():
+        selected_item = listbox.get(ANCHOR)
+        item = json.loads(selected_item)
+        item_id = item["id"]
+
+        log_data = load_logs()
+        log_data = [item for item in log_data if item["id"] != item_id]
+
+        with open(log_file_path, 'w') as log_file:
+            json.dump(log_data, log_file, indent=4)
+
+        update_listbox()
+        messagebox.showinfo("Success", "Item deleted successfully.")
+
+    def refresh():
+        log_data = load_logs()
+        update_listbox()
+
+    def update_listbox():
+        listbox.delete(0, END)
+        log_data = load_logs()
+        for item in log_data:
+            item_name = item["name"]
+            listbox.insert(END, item_name)
+
+    # Create the main window
     root = Tk()
-    root.title("Item Selector")
-    root.geometry("400x400")
-    root.configure(bg='black')
+    root.title("Logged Items")
+    root.configure(bg="black")
 
-    # Create a Listbox to display the items
-    listbox = Listbox(root, bg='black', fg='yellow', font=("Arial", 12))
-    listbox.pack(fill='both', expand=True, padx=10, pady=10)
+    # Create the listbox
+    listbox = Listbox(root, font=("Arial", 12), bg="black", fg="yellow")
+    listbox.pack(pady=10)
 
-    # Insert the items into the Listbox
-    for line in log_data:
-        item_id, item_name = line.strip().split(',')
-        listbox.insert(END, f"ID: {item_id} - Name: {item_name}")
-        listbox.insert(END, '-' * 40)
+    # Create a scrollbar
+    scrollbar = Scrollbar(root)
+    scrollbar.pack(side=RIGHT, fill=Y)
 
-    # Function to handle item selection
-    def select_item(event):
-        selected_item = listbox.get(listbox.curselection())
-        item_id = selected_item.split(':')[1].strip().split()[0]
-        item_name = selected_item.split('- Name:')[1].strip()
-        open_main(item_id)
-        modify_config(item_id)
-        delete_item(selected_item)
-        root.destroy()
+    # Set the scrollbar to the listbox
+    listbox.config(yscrollcommand=scrollbar.set)
+    scrollbar.config(command=listbox.yview)
 
-    # Bind the double click event to the item selection function
-    listbox.bind("<Double-Button-1>", select_item)
+    # Add buttons
+    open_button = Button(root, text="Open Item", command=open_item)
+    open_button.pack(pady=5)
 
-    # Create a button to delete the selected item
-    delete_button = Button(root, text="Delete", command=lambda: delete_item(listbox.get(listbox.curselection())), fg='white', bg='red', font=("Arial", 12))
-    delete_button.pack(pady=10)
+    delete_button = Button(root, text="Delete Item", command=delete_item)
+    delete_button.pack(pady=5)
 
-    # Start the GUI event loop
+    refresh_button = Button(root, text="Refresh", command=refresh)
+    refresh_button.pack(pady=5)
+
+    # Load the initial items in the listbox
+    update_listbox()
+
+    # Start the GUI main loop
     root.mainloop()
 
-def modify_config(item_id):
-    # Modify the contents of the config.json file with the selected item ID
-    file_path = 'config.json'
-    if os.path.isfile(file_path):
-        with open(file_path, 'r+') as file:
-            data = json.load(file)
-            data['items'] = [item_id]
-            file.seek(0)
-            json.dump(data, file, indent=4)
-            file.truncate()
-            print(f"{Fore.MAGENTA}Config file modified successfully!{Style.RESET_ALL}")
-    else:
-        print(f"{Fore.RED}Config file not found!{Style.RESET_ALL}")
-
-if __name__ == '__main__':
-    main()
+# Call the create_gui function to start the application
+create_gui()
