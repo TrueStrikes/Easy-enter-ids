@@ -43,20 +43,17 @@ def modify_config(url):
     return True
 
 def update_log(log_file_path, item_id, item_name):
-    log_data = []
-    if os.path.isfile(log_file_path):
-        with open(log_file_path, 'r') as log_file:
-            try:
-                log_data = json.load(log_file)
-            except json.JSONDecodeError:
-                pass
+    with open(log_file_path, 'r+') as log_file:
+        try:
+            log_data = json.load(log_file)
+        except json.JSONDecodeError:
+            log_data = []
 
-    existing_ids = set(entry["id"] for entry in log_data)
-    if item_id not in existing_ids:
-        entry = {"id": item_id, "name": item_name}
-        log_data.append(entry)
-        with open(log_file_path, 'w') as log_file:
+        if {"id": item_id, "name": item_name} not in log_data:
+            log_data.append({"id": item_id, "name": item_name})
+            log_file.seek(0)
             json.dump(log_data, log_file, indent=4)
+            log_file.truncate()
 
 def get_item_details(url):
     parsed_url = urlparse(url)
@@ -76,8 +73,8 @@ print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog lin
 # Initial clipboard text
 clipboard_text = ""
 
-# Define the timer duration in seconds (10 minutes = 600 seconds)
-timer_duration = 600
+# Define the timer duration in seconds (1 hour = 3600 seconds)
+timer_duration = 3600
 
 # Start the timer
 start_time = time.time()
@@ -95,7 +92,7 @@ while True:
             if modify_config(clipboard_text):
                 try:
                     subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
-                    print_message('main.py opened successfully!', Fore.YELLOW)
+                    print_message('main.py opened successfully!', Fore.GREEN)
                     pyperclip.copy("redacted")  # Set clipboard contents to "redacted"
 
                     # Extract and log the item ID and item name
@@ -115,4 +112,4 @@ while True:
         break
 
     # Wait for a short duration before checking clipboard again
-    time.sleep(0.1)
+    time.sleep(0.05)
