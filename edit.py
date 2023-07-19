@@ -3,6 +3,7 @@ import json
 import subprocess
 import pyperclip
 from colorama import init, Fore, Style
+from collections import deque
 import time
 
 # Initialize colorama
@@ -41,42 +42,59 @@ def modify_config(url):
     return True
 
 # Starting message
+os.system('cls' if os.name == 'nt' else 'clear')
 print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CYAN)
 
-# Initial clipboard text
-clipboard_text = ""
-
-# Define the timer duration in seconds (10 minutes = 600 seconds)
-timer_duration = 600
-
-# Start the timer
-start_time = time.time()
+# Deque to store clipboard logs
+clipboard_logs = deque(maxlen=3)
 
 # Infinite loop
 while True:
-    # Check the clipboard contents
-    new_clipboard_text = pyperclip.paste()
+    # Initial clipboard text
+    clipboard_text = ""
 
-    if new_clipboard_text != clipboard_text:
-        clipboard_text = new_clipboard_text
+    # Define the timer duration in seconds (10 minutes = 600 seconds)
+    timer_duration = 600
 
-        if clipboard_text.startswith("https://www.roblox.com/catalog/") or clipboard_text.startswith("https://web.roblox.com/catalog/"):
-            # Modify the config with the clipboard URL
-            if modify_config(clipboard_text):
-                try:
-                    subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
-                    print_message('main.py opened successfully!', Fore.YELLOW)
-                    print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CYAN)
-                    pyperclip.copy("redacted")  # Set clipboard contents to "redacted"
-                except Exception as e:
-                    print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
+    # Start the timer
+    start_time = time.time()
 
-    # Check if the timer has ended
-    elapsed_time = time.time() - start_time
-    if elapsed_time >= timer_duration:
-        # Restart the program
-        subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'edit.py')], shell=True)
-        break
+    # Inner loop for the timer and clipboard check
+    while True:
+        try:
+            # Check the clipboard contents
+            new_clipboard_text = pyperclip.paste()
 
-    # Wait for a short duration before checking clipboard again
-    time.sleep(0.1)
+            if new_clipboard_text != clipboard_text:
+                clipboard_text = new_clipboard_text
+
+                # Add the clipboard text to the logs
+                clipboard_logs.append(clipboard_text)
+
+                if clipboard_text.startswith("https://www.roblox.com/catalog/") or clipboard_text.startswith("https://web.roblox.com/catalog/"):
+                    # Modify the config with the clipboard URL
+                    if modify_config(clipboard_text):
+                        try:
+                            subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
+                            print_message('main.py opened successfully!', Fore.YELLOW)
+                            print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CYAN)
+                            pyperclip.copy("redacted")  # Set clipboard contents to "redacted"
+                        except Exception as e:
+                            print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
+
+            # Check if the timer has ended
+            elapsed_time = time.time() - start_time
+            if elapsed_time >= timer_duration:
+                break
+
+            # Wait for a short duration before checking clipboard again
+            time.sleep(0.1)
+        except pyperclip.PyperclipWindowsException:
+            # Handle the exception and continue the script
+            print_message("Clipboard access failed. Retrying...", Fore.RED)
+
+    print_message("Timer ended. Restarting Clipboard Monitor...", Fore.YELLOW)
+    # Wait for a short duration before restarting the clipboard monitor
+    time.sleep(1)
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CAN) # Change Fore.CAN to the desired color code for "CAN"
