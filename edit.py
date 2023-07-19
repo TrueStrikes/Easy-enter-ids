@@ -3,8 +3,8 @@ import json
 import subprocess
 import pyperclip
 from colorama import init, Fore, Style
-from collections import deque
 import time
+from urllib.parse import urlparse
 
 # Initialize colorama
 init()
@@ -12,6 +12,7 @@ init()
 # Get the script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, 'config.json')
+log_file_path = os.path.join(script_dir, 'log.json')
 
 # Define the input prompt color
 input_prompt_color = Fore.LIGHTBLUE_EX
@@ -41,60 +42,77 @@ def modify_config(url):
 
     return True
 
+def update_log(log_file_path, item_id, item_name):
+    log_data = []
+    if os.path.isfile(log_file_path):
+        with open(log_file_path, 'r') as log_file:
+            try:
+                log_data = json.load(log_file)
+            except json.JSONDecodeError:
+                pass
+
+    existing_ids = set(entry["id"] for entry in log_data)
+    if item_id not in existing_ids:
+        entry = {"id": item_id, "name": item_name}
+        log_data.append(entry)
+        with open(log_file_path, 'w') as log_file:
+            json.dump(log_data, log_file, indent=4)
+
+def get_item_details(url):
+    parsed_url = urlparse(url)
+    path_parts = parsed_url.path.split('/')
+    if len(path_parts) >= 3 and path_parts[2].isdigit():
+        item_id = path_parts[2]
+        item_name = path_parts[3] if len(path_parts) >= 4 else "Unknown"
+        return item_id, item_name
+    return None, None
+
+# Clear the console
+os.system("cls" if os.name == "nt" else "clear")
+
 # Starting message
-os.system('cls' if os.name == 'nt' else 'clear')
 print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CYAN)
 
-# Deque to store clipboard logs
-clipboard_logs = deque(maxlen=3)
+# Initial clipboard text
+clipboard_text = ""
+
+# Define the timer duration in seconds (10 minutes = 600 seconds)
+timer_duration = 600
+
+# Start the timer
+start_time = time.time()
 
 # Infinite loop
 while True:
-    # Initial clipboard text
-    clipboard_text = ""
+    # Check the clipboard contents
+    new_clipboard_text = pyperclip.paste()
 
-    # Define the timer duration in seconds (10 minutes = 600 seconds)
-    timer_duration = 600
+    if new_clipboard_text != clipboard_text:
+        clipboard_text = new_clipboard_text
 
-    # Start the timer
-    start_time = time.time()
+        if clipboard_text.startswith("https://www.roblox.com/catalog/") or clipboard_text.startswith("https://web.roblox.com/catalog/"):
+            # Modify the config with the clipboard URL
+            if modify_config(clipboard_text):
+                try:
+                    subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
+                    print_message('main.py opened successfully!', Fore.YELLOW)
+                    pyperclip.copy("redacted")  # Set clipboard contents to "redacted"
 
-    # Inner loop for the timer and clipboard check
-    while True:
-        try:
-            # Check the clipboard contents
-            new_clipboard_text = pyperclip.paste()
+                    # Extract and log the item ID and item name
+                    item_id, item_name = get_item_details(clipboard_text)
+                    if item_id:
+                        update_log(log_file_path, item_id, item_name)
 
-            if new_clipboard_text != clipboard_text:
-                clipboard_text = new_clipboard_text
+                    print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CYAN)
+                except Exception as e:
+                    print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
 
-                # Add the clipboard text to the logs
-                clipboard_logs.append(clipboard_text)
+    # Check if the timer has ended
+    elapsed_time = time.time() - start_time
+    if elapsed_time >= timer_duration:
+        # Restart the program
+        subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'edit.py')], shell=True)
+        break
 
-                if clipboard_text.startswith("https://www.roblox.com/catalog/") or clipboard_text.startswith("https://web.roblox.com/catalog/"):
-                    # Modify the config with the clipboard URL
-                    if modify_config(clipboard_text):
-                        try:
-                            subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
-                            print_message('main.py opened successfully!', Fore.YELLOW)
-                            print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CYAN)
-                            pyperclip.copy("redacted")  # Set clipboard contents to "redacted"
-                        except Exception as e:
-                            print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
-
-            # Check if the timer has ended
-            elapsed_time = time.time() - start_time
-            if elapsed_time >= timer_duration:
-                break
-
-            # Wait for a short duration before checking clipboard again
-            time.sleep(0.1)
-        except pyperclip.PyperclipWindowsException:
-            # Handle the exception and continue the script
-            print_message("Clipboard access failed. Retrying...", Fore.RED)
-
-    print_message("Timer ended. Restarting Clipboard Monitor...", Fore.YELLOW)
-    # Wait for a short duration before restarting the clipboard monitor
-    time.sleep(1)
-    os.system('cls' if os.name == 'nt' else 'clear')
-    print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CAN) # Change Fore.CAN to the desired color code for "CAN"
+    # Wait for a short duration before checking clipboard again
+    time.sleep(0.1)
