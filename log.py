@@ -11,6 +11,15 @@ def open_main(item):
     except Exception as e:
         print(f'An error occurred while opening main.py: {str(e)}')
 
+def delete_item(selected_item):
+    with open('log.txt', 'r') as file:
+        lines = file.readlines()
+
+    with open('log.txt', 'w') as file:
+        for line in lines:
+            if line.strip() != selected_item:
+                file.write(line)
+
 def main():
     # Read the log file
     with open('log.txt', 'r') as file:
@@ -39,10 +48,15 @@ def main():
         item_name = selected_item.split('- Name:')[1].strip()
         open_main(item_id)
         modify_config(item_id)
+        delete_item(selected_item)
         root.destroy()
 
     # Bind the double click event to the item selection function
     listbox.bind("<Double-Button-1>", select_item)
+
+    # Create a button to delete the selected item
+    delete_button = Button(root, text="Delete", command=lambda: delete_item(listbox.get(listbox.curselection())), fg='white', bg='red', font=("Arial", 12))
+    delete_button.pack(pady=10)
 
     # Start the GUI event loop
     root.mainloop()
