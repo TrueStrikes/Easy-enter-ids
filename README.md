@@ -18,6 +18,6 @@ Closes and opens instantly. Fix: Open the folder in cmd, then do "python edit.py
 
 If you get a no module error, do "pip install (insert-module)
 
-If you dont have a log.txt automatically, make one so it works.
+If you dont have a log.json automatically, make one so it works.
 
 Tutorial: https://www.youtube.com/watch?v=br40kUatUMI
