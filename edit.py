@@ -5,6 +5,7 @@ import pyperclip
 from colorama import init, Fore, Style
 import time
 from urllib.parse import urlparse
+import re
 
 # Initialize colorama
 init()
@@ -20,7 +21,7 @@ input_prompt_color = Fore.LIGHTBLUE_EX
 def print_message(message, color):
     print(f"{color}{message}{Style.RESET_ALL}")
 
-def modify_config(url):
+def modify_config(item_id):
     if not os.path.isfile(file_path):
         print_message('config.json file not found in the script directory.', Fore.RED)
         return False
@@ -28,12 +29,7 @@ def modify_config(url):
     with open(file_path, 'r') as file:
         data = json.load(file)
 
-    if "items" not in data:
-        print_message('"items" section not found in the JSON file.', Fore.RED)
-        return False
-
-    url = url.replace("https://www.roblox.com/catalog/", "").replace("https://web.roblox.com/catalog/", "").split("/")[0]
-    data["items"] = [url]
+    data["items"] = [item_id]
 
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
@@ -64,6 +60,14 @@ def get_item_details(url):
         return item_id, item_name
     return None, None
 
+def detect_11_digit_integer(clipboard_text):
+    # Use regular expression to find 11-digit integers
+    matches = re.findall(r'\b\d{11}\b', clipboard_text)
+    return matches
+
+def open_main_py():
+    subprocess.Popen(['start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
+
 # Clear the console
 os.system("cls" if os.name == "nt" else "clear")
 
@@ -87,11 +91,16 @@ while True:
     if new_clipboard_text != clipboard_text:
         clipboard_text = new_clipboard_text
 
+        # Reset the flag at the beginning of each iteration
+        main_py_opened = False
+
+        # Detect Roblox catalog links
         if clipboard_text.startswith("https://www.roblox.com/catalog/") or clipboard_text.startswith("https://web.roblox.com/catalog/"):
             # Modify the config with the clipboard URL
-            if modify_config(clipboard_text):
+            if modify_config(clipboard_text) and not main_py_opened:
                 try:
-                    subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
+                    open_main_py()
+                    main_py_opened = True
                     print_message('main.py opened successfully!', Fore.GREEN)
                     pyperclip.copy("redacted")  # Set clipboard contents to "redacted"
 
@@ -104,11 +113,21 @@ while True:
                 except Exception as e:
                     print_message(f'An error occurred while opening main.py: {str(e)}', Fore.RED)
 
+        # Detect 11-digit integers and modify config if found
+        detected_integers = detect_11_digit_integer(clipboard_text)
+        if detected_integers:
+            for item_id in detected_integers:
+                if modify_config(item_id) and not main_py_opened:
+                    main_py_opened = True
+                    print_message(f'Item ID {item_id} detected and added to config.json.', Fore.YELLOW)
+                    open_main_py()
+                    pyperclip.copy("redacted")  # Set clipboard contents to "redacted"
+
     # Check if the timer has ended
     elapsed_time = time.time() - start_time
     if elapsed_time >= timer_duration:
         # Restart the program
-        subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'edit.py')], shell=True)
+        subprocess.Popen(['start', 'python', os.path.join(script_dir, 'edit.py')], shell=True)
         break
 
     # Wait for a short duration before checking clipboard again
