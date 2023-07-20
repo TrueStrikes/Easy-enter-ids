@@ -11,7 +11,6 @@ Every line is explained, so you cant say it's a cookie logger
 
 I would appreciate a star so people dont say it's a cookie logger
 
-
 Common errors: 
 
 Closes and opens instantly. Fix: Open the folder in cmd, then do "python edit.py"
@@ -21,3 +20,6 @@ If you get a no module error, do "pip install (insert-module)
 If you dont have a log.json automatically, make one so it works.
 
 Tutorial: https://www.youtube.com/watch?v=br40kUatUMI
+
+
+Note: Opening main.py with log.py is broken right now. Logs still work fine
