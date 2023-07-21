@@ -2,8 +2,8 @@ import os
 import json
 import subprocess
 import pyperclip
-from colorama import init, Fore, Style
 import time
+from colorama import init, Fore, Style
 from urllib.parse import urlparse
 
 # Initialize colorama
@@ -32,7 +32,7 @@ def modify_config(url):
         print_message('"items" section not found in the JSON file.', Fore.RED)
         return False
 
-    url = url.replace("https://www.roblox.com/catalog/", "").replace("https://web.roblox.com/catalog/", "").replace("https://roblox.com/catalog/", "").split("/")[0]
+    url = url.replace("https://www.roblox.com/catalog/", "").replace("https://web.roblox.com/catalog/", "").replace("roblox.com/catalog/", "").split("/")[0]
     data["items"] = [url]
 
     with open(file_path, 'w') as file:
@@ -64,13 +64,24 @@ def get_item_details(url):
         return item_id, item_name
     return None, None
 
+def is_valid_11_digit_number(text):
+    return text.isdigit() and len(text) == 11
+
+def is_valid_roblox_catalog_link(url):
+    return (
+        url.startswith("https://www.roblox.com/catalog/") or 
+        url.startswith("https://web.roblox.com/catalog/") or
+        url.startswith("www.roblox.com/catalog/") or
+        url.startswith("roblox.com/catalog/")
+    )
+
 # Clear the console
 os.system("cls" if os.name == "nt" else "clear")
 
 # Starting message
 print_message("Clipboard Monitor is active. Waiting for valid Roblox catalog link...", Fore.CYAN)
 
-# Initial clipboard text
+# Initialize clipboard_text variable
 clipboard_text = ""
 
 # Infinite loop
@@ -81,8 +92,8 @@ while True:
     if new_clipboard_text != clipboard_text:
         clipboard_text = new_clipboard_text
 
-        if clipboard_text.startswith("https://roblox.com/catalog/") or clipboard_text.startswith("https://web.roblox.com/catalog/"):
-            # Modify the config with the clipboard URL
+        if is_valid_roblox_catalog_link(clipboard_text) or is_valid_11_digit_number(clipboard_text):
+            # Modify the config with the clipboard URL or 11-digit integer
             if modify_config(clipboard_text):
                 try:
                     subprocess.Popen(['cmd', '/c', 'start', 'python', os.path.join(script_dir, 'main.py')], shell=True)
