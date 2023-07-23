@@ -1,4 +1,4 @@
-# Easy-enter-ids (Xolo), seperate edit death sniper is another file
+# Easy-enter-ids (Xolo), separate edit death sniper is another file
 To get this to work. drag edit.py into your sniper folder and leave it.
 Open edit.py.
 Use.
