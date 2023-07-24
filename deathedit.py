@@ -28,12 +28,12 @@ def modify_config(url):
     with open(file_path, 'r') as file:
         data = json.load(file)
 
-    if "items" not in data:
-        print_message('"items" section not found in the JSON file.', Fore.RED)
+    if "Items" not in data:
+        print_message('"Items" section not found in the JSON file.', Fore.RED)
         return False
 
     url = url.replace("https://www.roblox.com/catalog/", "").replace("https://web.roblox.com/catalog/", "").replace("roblox.com/catalog/", "").split("/")[0]
-    data["items"] = [url]
+    data["Items"] = [url]
 
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
